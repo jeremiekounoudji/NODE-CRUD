@@ -35,7 +35,7 @@ router.get('/all', async (req,res) =>{
 }),
 
 router.get('/single/:id', async (req,res) =>{
-    const id = req.params._id;
+    const id = req.params.id;
     // try {
         await User.findById(id, (err,docs)=>{
             if (!err) {
