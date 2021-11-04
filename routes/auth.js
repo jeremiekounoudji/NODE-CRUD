@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const User = require('../models/userModel');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const ObjectId = require('mongoose').Types.ObjectId;
+const { isValidObjectId } = require('mongoose');
+
 
 
 //auth routes
@@ -51,6 +54,10 @@ router.get('/search', async (req,res) =>{
 router.get('/single/:id',  (req,res) =>{
     const id = req.params.id;
 
+    if (!ObjectId.isValid(id)) {
+        res.status(400).send({"message":"Cet utilisateur n'existe pas"})
+    }
+
     // try {
         
          User.findOne({_id:id}, (err,docs)=>{
@@ -69,46 +76,49 @@ router.get('/single/:id',  (req,res) =>{
     
 }),
 
-router.put("update/:id", async (req,res) =>{
-
-    // try {
+router.put("/update/:id", async (req,res) =>{
     console.log('loooog1111');
 
-        await User.findByIdAndUpdate(
+    const id = req.params.id;
+
+    // if (!ObjectId.isValid(id)) {
+    //     res.status(400).send({"message":"Cet utilisateur n'existe pas"})
+    // }
+    try {
+    console.log('loooog1111');
+
+        await User.findOneAndUpdate(
             
-            req.params.id,
-            {
-               
-               $push: {username:req.body.username,
-                email:req.body.email,
-                password:req.body.password,
-               }
-                
-                
+            {_id:id},
+            {              
+               $set: {
+                username:req.body.username,
+                // email:req.body.email,
+                // password:req.body.password,
+               }                
             },
-            {
-                new:true,
-                upsert:true,
-                setDefaultsOnInsert:true
+            {new:true,upsert:true, setDefaultsOnInsert:true 
             },
             (err, doc)=>{
                 console.log('loooog11((((');
 
                 if (!err) {
-                    res.status(200).send(doc)
+                     res.status(200).send(doc)
                 }
-                res.status(400).json(err)
+                else{
+                    res.status(400).json(err)
+                }
 
             }
-
+        
         );
         
 
-    // } catch (err) {
-    // console.log('looo(--11');
+    } catch (err) {
+    console.log('looo(--11');
 
-    //     res.status(400).json(err)
-    // }
+        res.status(400).json({"erreur":err})
+    }
 }),
 
 router.delete("/delete/:id",async (req, res)=>{
